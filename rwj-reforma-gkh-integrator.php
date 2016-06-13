@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // Define plugin constants
 define( 'CD_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'PLUGIN_VERSION', '0.0.1' );
+define( 'RWJ_REFORMA_GKH_INTEGRATOR_ENABLE_CACHE', true );
 
 //мой движок для работы с базой, типа разделяю логику!
 require_once(CD_PLUGIN_PATH .'assets/lib/sql_engine.php');
@@ -39,6 +40,9 @@ register_activation_hook(__FILE__, 		'rwj_reforma_gkh_integrator_activate');			/
 add_action('admin_menu', 'rwj_reforma_gkh_integrator_create_menu');						//регистрируем пункт меню в панели управления
 add_action('media_buttons', 'rwj_reforma_gkh_integrator_add_button', 15);				//добавим в редактор кнопку, для более удобной вставки шоткодов
 // волшебная константа "15" - это приоритет, чем ниже приоритет тем выше будет отображаться кнопка.
+
+add_action('wp_enqueue_scripts', 'rwj_reforma_gkh_integrator_scripts');
+add_action('admin_enqueue_scripts', 'rwj_reforma_gkh_integrator_admin_scripts');
 
 add_action('init', 'rwj_reforma_gkh_integrator_run');
 
@@ -124,21 +128,55 @@ function rwj_reforma_gkh_integrator_add_button($args = array())
 	$target = is_string( $args ) ? $args : 'content';
 	$args = wp_parse_args( $args, array(
 			'target'    => $target,
-			'text'      => __( 'Insert shortcode', 'shortcodes-ultimate' ),
+			'text'      => __( 'Вставить шоткод', 'rwj-reforma-gkh-integrator' ),
 			'class'     => 'button',
-			'icon'      => plugins_url( 'assets/images/icon.png', CD_PLUGIN_PATH ),
+			'icon'      => plugins_url( 'assets/images/icon.png', __FILE__),
 			'echo'      => true,
 			'shortcode' => false
 		) );
 
 	if ( $args['icon'] ) $args['icon'] = '<img src="' . $args['icon'] . '" /> ';
 
-	$button = '<a href="javascript:void(0);" class="rwj-reforma-gkh-integrator-button ' . $args['class'] . '" title="' . $args['text'] . '" data-target="' . $args['target'] . '" data-mfp-src="#su-generator" data-shortcode="' . (string) $args['shortcode'] . '">' . $args['icon'] . $args['text'] . '</a>';
+	$button = '<a href="javascript:void(0);" class="rwj-reforma-gkh-integrator-button ' . $args['class'] . '" title="' . $args['text'] . '" data-target="' . $args['target'] . '" data-mfp-src="#rwj-reforma-gkh-integrator" data-shortcode="' . (string) $args['shortcode'] . '">' . $args['icon'] . $args['text'] . '</a>';
 
 	wp_enqueue_media();
 
 	if ( $args['echo'] ) echo $button;
 	return $button;
+}
+
+function rwj_reforma_gkh_integrator_popup()
+{
+	// получаю КЭШ
+	$output = get_transient( 'rwj_reforma_gkh_integrator_popup' );
+	if ( $output && RWJ_REFORMA_GKH_INTEGRATOR_ENABLE_CACHE ) echo $output;
+	// КЭШ не найден
+	else {
+		ob_start();
+		?>
+		<div class="rwj-reforma-gkh-integrator-bootstrap-wrapper">
+			<div class="container-fluid">
+				<div class="row">
+					<div class="col-md-8 col-md-offset-2 col-lg-8 col-lg-offset-2">
+						<form>
+							<label for="selectShotCodeType"><? echo __('Тип шоткода', 'rwj-reforma-gkh-integrator'); ?></label>
+							<select class="form-control" id="selectShotCodeType">
+								<option>1</option>
+							</select>
+							<label for="selectShotCodes"><? echo __('Шоткоды', 'rwj-reforma-gkh-integrator'); ?></label>
+							<select class="form-control" id="selectShotCodes">
+								<option>1</option>								
+							</select>
+							<p>
+  								<button type="button" class="btn btn-primary btn-lg"><? echo __('Вставить', 'rwj-reforma-gkh-integrator'); ?></button>
+  							</p>
+						</form>
+					</div>
+				</div>
+			</div>	
+		</div>
+		<?php
+	}	
 }
 
 function rwj_reforma_gkh_integrator_options_page()
@@ -284,10 +322,21 @@ function rwj_reforma_gkh_integrator_run()
 {	
 	//Зарегистрируем наш шорткод, при установке плагина
 	add_shortcode( 'house_profile_988', 'shortcode_house_profile_988' );
+}
+
+function rwj_reforma_gkh_integrator_scripts()
+{
 	// регистрируем стили
 	add_action( 'wp_enqueue_scripts', 'register_plugin_styles' );
 	// регистрируем скрипты
 	add_action( 'wp_enqueue_scripts', 'register_plugin_scripts' );
+}
+
+function rwj_reforma_gkh_integrator_admin_scripts()
+{
+	wp_enqueue_script('admin_js_bootstrap_hack', plugins_url('assets/js/bootstrap-hack.js', __FILE__), false, '1.0.0', false);
+
+	rwj_reforma_gkh_integrator_popup();
 }
 
 function view($tmpl, $vals){
