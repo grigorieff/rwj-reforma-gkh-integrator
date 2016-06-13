@@ -2,13 +2,31 @@
 /*
 Plugin Name: rwj-reforma-gkh-integrator
 Plugin URI: http://realwebjob.ru/rwj-reforma-gkh-integrator
-Description: Плагин предназначен для получение данных с сайта reformagkh.ru.
+Description: The plugin is designed to receive data from the site reformagkh.ru.
 Version: 0.0.1
-Author: Павел Никитин
+Author: Pavel Nikitin
 Author URI: http://realwebjob.ru
+
+Copyright 2015 Pavel Nikitin  (email: sayrom43@gmail.com)
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+// Define plugin constants
 define( 'CD_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
+define( 'PLUGIN_VERSION', '0.0.1' );
 
 //мой движок для работы с базой, типа разделяю логику!
 require_once(CD_PLUGIN_PATH .'assets/lib/sql_engine.php');
@@ -19,14 +37,18 @@ require_once( ABSPATH . 'wp-admin/includes/media.php' );
 register_activation_hook(__FILE__, 		'rwj_reforma_gkh_integrator_activate');			//хук, срабатывает в момент активации плагина
 
 add_action('admin_menu', 'rwj_reforma_gkh_integrator_create_menu');						//регистрируем пункт меню в панели управления
-add_action('init', 'rwj_reforma_gkh_integrator_run');
+add_action('media_buttons', 'rwj_reforma_gkh_integrator_add_button', 15);				//добавим в редактор кнопку, для более удобной вставки шоткодов
+// волшебная константа "15" - это приоритет, чем ниже приоритет тем выше будет отображаться кнопка.
 
+add_action('init', 'rwj_reforma_gkh_integrator_run');
 
 add_filter( 'cron_schedules', 'cron_add_new' );											//регистрируем новые временные интервал для обновления каждые 5 минут и еженедельного
 add_action('rwj_integrator_update_data_hook', 'rwj_update_data_task');					
 add_action('rwj_integrator_download_file_hook', 'rwj_download_file');
 
 register_deactivation_hook(__FILE__,	'rwj_reforma_gkh_integrator_deactivate');
+
+
 
 function rwj_reforma_gkh_integrator_activate()											//хук, срабатывает в момент деактивации плагина
 {
@@ -51,8 +73,7 @@ function rwj_reforma_gkh_integrator_activate()											//хук, срабат�
 
 // регистрируем файл стилей и добавляем его в очередь
 function register_plugin_styles() {
-	wp_register_style( 'rwj_reforma_gkh_integrator_style', plugins_url( '/assets/css/style.css', __FILE__ ) );
-    
+	wp_register_style( 'rwj_reforma_gkh_integrator_style', plugins_url( '/assets/css/style.css', __FILE__ ) );    
 	wp_enqueue_style( 'rwj_reforma_gkh_integrator_style', plugins_url( '/assets/css/style.css', __FILE__ ) );
 }
 
@@ -83,13 +104,41 @@ function rwj_reforma_gkh_integrator_create_menu()
 	add_options_page(
 		'Интеграция данных с сайта reformagkh.ru',	//Текст, который будет использован в теге title на странице, настроек.
 		'Интеграция (reformagkh.ru)',				//Текст, который будет использован в качестве называния для пункта меню.
-		'manage_options',								//Название права доступа для пользователя, чтобы ему был показан этот пункт меню. Было - 8.
+		'manage_options',							//Название права доступа для пользователя, чтобы ему был показан этот пункт меню. Было - 8.
 		//http://codex.wordpress.org/Roles_and_Capabilities#Capability_vs._Role_Table
 		'rwj-reforma-gkh-integrator',				//Идентификатор меню. Нужно вписывать уникальную строку, пробелы не допускаются.Можно, также указать путь от папки плагина до файла, который будет отвечать за страницу настроек плагина, пр. my-plugin/options.php. В этом случае, следующий параметр указывать не обязательно.
 		'rwj_reforma_gkh_integrator_options_page'	//Название функции, которая отвечает за код страницы этого пункта меню.
 	);
 
 	//add_action( 'admin_init', 'register_admin_menu_settings' );	
+}
+
+function rwj_reforma_gkh_integrator_add_button($args = array())
+{
+	// Check access
+	if ( function_exists('current_user_can') && current_user_can('mange_options') ) 
+	{
+		die(_e('Hacker?', 'rwj_reforma_gkh_integrator'));
+	}
+
+	$target = is_string( $args ) ? $args : 'content';
+	$args = wp_parse_args( $args, array(
+			'target'    => $target,
+			'text'      => __( 'Insert shortcode', 'shortcodes-ultimate' ),
+			'class'     => 'button',
+			'icon'      => plugins_url( 'assets/images/icon.png', CD_PLUGIN_PATH ),
+			'echo'      => true,
+			'shortcode' => false
+		) );
+
+	if ( $args['icon'] ) $args['icon'] = '<img src="' . $args['icon'] . '" /> ';
+
+	$button = '<a href="javascript:void(0);" class="rwj-reforma-gkh-integrator-button ' . $args['class'] . '" title="' . $args['text'] . '" data-target="' . $args['target'] . '" data-mfp-src="#su-generator" data-shortcode="' . (string) $args['shortcode'] . '">' . $args['icon'] . $args['text'] . '</a>';
+
+	wp_enqueue_media();
+
+	if ( $args['echo'] ) echo $button;
+	return $button;
 }
 
 function rwj_reforma_gkh_integrator_options_page()
