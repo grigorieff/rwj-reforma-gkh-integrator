@@ -16,7 +16,7 @@ $house_report_quality_of_work_claims= $report->house_report_quality_of_work_clai
 ?>
 
 
-<div class="rwj-reforma-gkh-integrator">
+<div class="rwj-reforma-gkh-integrator-bootstrap-wrapper">
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-4 col-lg-4">

@@ -75,34 +75,6 @@ function rwj_reforma_gkh_integrator_activate()											//хук, срабат�
 	}
 }
 
-// регистрируем файл стилей и добавляем его в очередь
-function register_plugin_styles() {
-	wp_register_style( 'rwj_reforma_gkh_integrator_style', plugins_url( '/assets/css/style.css', __FILE__ ) );    
-	wp_enqueue_style( 'rwj_reforma_gkh_integrator_style', plugins_url( '/assets/css/style.css', __FILE__ ) );
-}
-
-function register_plugin_scripts() {
-    wp_register_script('rwj_reforma_gkh_integrator_jquery',		'https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js');
-    wp_register_script('rwj_reforma_gkh_integrator_html5shiv',	'https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js');
-    wp_register_script('rwj_reforma_gkh_integrator_respond',	'https://oss.maxcdn.com/respond/1.4.2/respond.min.js');
-    wp_register_script('rwj_reforma_gkh_integrator_bootstrap',	plugins_url( '/assets/js/bootstrap.min.js', __FILE__ ));
-	wp_register_script('rwj_reforma_gkh_integrator_ymaps_api',	'https://api-maps.yandex.ru/2.0-stable/?load=package.standard&lang=ru-RU');	
-
-	$script_params = array(
-    	'full_address' => get_option('rwj_reforma_gkh_integrator_full_address')
-	);
-	wp_register_script('rwj_reforma_gkh_integrator_ymaps',	plugins_url( '/assets/js/rwj-integrator-ymap.js', __FILE__ ));
-	wp_localize_script('rwj_reforma_gkh_integrator_ymaps', 'rwj_reforma_gkh_integrator_options', $script_params);
-
-    
-	wp_enqueue_script('rwj_reforma_gkh_integrator_jquery');
-	wp_enqueue_script('rwj_reforma_gkh_integrator_html5shiv');
-	wp_enqueue_script('rwj_reforma_gkh_integrator_respond');
-	wp_enqueue_script('rwj_reforma_gkh_integrator_bootstrap');
-	wp_enqueue_script('rwj_reforma_gkh_integrator_ymaps_api');
-	wp_enqueue_script('rwj_reforma_gkh_integrator_ymaps');
-}
-
 function rwj_reforma_gkh_integrator_create_menu()
 {
 	add_options_page(
@@ -124,59 +96,43 @@ function rwj_reforma_gkh_integrator_add_button($args = array())
 	{
 		die(_e('Hacker?', 'rwj_reforma_gkh_integrator'));
 	}
-
-	$target = is_string( $args ) ? $args : 'content';
-	$args = wp_parse_args( $args, array(
-			'target'    => $target,
-			'text'      => __( 'Вставить шоткод', 'rwj-reforma-gkh-integrator' ),
-			'class'     => 'button',
-			'icon'      => plugins_url( 'assets/images/icon.png', __FILE__),
-			'echo'      => true,
-			'shortcode' => false
-		) );
-
-	if ( $args['icon'] ) $args['icon'] = '<img src="' . $args['icon'] . '" /> ';
-
-	$button = '<a href="javascript:void(0);" class="rwj-reforma-gkh-integrator-button ' . $args['class'] . '" title="' . $args['text'] . '" data-target="' . $args['target'] . '" data-mfp-src="#rwj-reforma-gkh-integrator" data-shortcode="' . (string) $args['shortcode'] . '">' . $args['icon'] . $args['text'] . '</a>';
-
-	wp_enqueue_media();
-
-	if ( $args['echo'] ) echo $button;
-	return $button;
-}
-
-function rwj_reforma_gkh_integrator_popup()
-{
-	// получаю КЭШ
-	$output = get_transient( 'rwj_reforma_gkh_integrator_popup' );
-	if ( $output && RWJ_REFORMA_GKH_INTEGRATOR_ENABLE_CACHE ) echo $output;
-	// КЭШ не найден
-	else {
-		ob_start();
-		?>
-		<div class="rwj-reforma-gkh-integrator-bootstrap-wrapper">
-			<div class="container-fluid">
-				<div class="row">
-					<div class="col-md-8 col-md-offset-2 col-lg-8 col-lg-offset-2">
+	//plugins_url( 'assets/images/icon.png', __FILE__)
+	?>
+	<button class="btn btn-default" type="button" data-toggle="modal" data-target="#rwj-reforma-gkh-integrator-bootstrap-wrapper-shotcodes-form"><img src="<? echo plugins_url( 'assets/images/icon.png', __FILE__); ?>" alt="">Вставить шоткод</button>
+	<div class="rwj-reforma-gkh-integrator-bootstrap-wrapper">		
+		<div id="rwj-reforma-gkh-integrator-bootstrap-wrapper-shotcodes-form" class="modal fade">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h4 class="modal-title"><?echo __('Вставка шоткодов rwj-reforma-gkh-integrator', 'rwj-reforma-gkh-integrator'); ?></h4>
+						<button class="close" type="button" data-dismiss="modal">×</button>
+					</div>
+					<div class="modal-body">
 						<form>
-							<label for="selectShotCodeType"><? echo __('Тип шоткода', 'rwj-reforma-gkh-integrator'); ?></label>
-							<select class="form-control" id="selectShotCodeType">
-								<option>1</option>
-							</select>
-							<label for="selectShotCodes"><? echo __('Шоткоды', 'rwj-reforma-gkh-integrator'); ?></label>
-							<select class="form-control" id="selectShotCodes">
-								<option>1</option>								
-							</select>
-							<p>
-  								<button type="button" class="btn btn-primary btn-lg"><? echo __('Вставить', 'rwj-reforma-gkh-integrator'); ?></button>
-  							</p>
+							<div class="form-group">
+								<label for="selectShotCodeType"><? echo __('Тип шоткода', 'rwj-reforma-gkh-integrator'); ?></label>
+								<select class="form-control" id="selectShotCodeType">
+									<option>1</option>
+								</select>
+							</div>
+							<div class="form-group">
+								<label for="selectShotCodes"><? echo __('Шоткоды', 'rwj-reforma-gkh-integrator'); ?></label>
+								<select class="form-control" id="selectShotCodes">
+									<option>1</option>								
+								</select>
+							</div>
+							<div class="form-group">
+								<p><button type="button" class="btn btn-primary btn-lg"><? echo __('Вставить', 'rwj-reforma-gkh-integrator'); ?></button></p>
+							</div>
 						</form>
 					</div>
 				</div>
-			</div>	
+			</div>
 		</div>
-		<?php
-	}	
+	</div><?
+	wp_enqueue_media();
+
+	echo $button;
 }
 
 function rwj_reforma_gkh_integrator_options_page()
@@ -227,55 +183,51 @@ function rwj_reforma_gkh_integrator_change_organization()
 		}
 
 		//rwj_download_file();
-	}
-	
-	
-	echo "<form name='rwj_reforma_gkh_integrator_base_setup' method='post' action='".$_SERVER['PHP_SELF']."?page=rwj-reforma-gkh-integrator&amp;updated=true'>";
+	}?>
+	<div class="rwj-reforma-gkh-integrator-bootstrap-wrapper">
+	<? echo "<form name='rwj_reforma_gkh_integrator_base_setup' method='post' action='".$_SERVER['PHP_SELF']."?page=rwj-reforma-gkh-integrator&amp;updated=true'>";
 	// внутреняя кухня wordpress - защита от хакеров
 	if (function_exists('wp_nonce_field'))
 	{
 		wp_nonce_field('rwj_reforma_gkh_integrator_base_setup');
-	}
-
-	echo "<table>
-			<tr>
-				<td style='text-align:right;'>Инн организации:</td>
-				<td><input type='text' name='rwj_reforma_gkh_integrator_inn' value='".get_option('rwj_reforma_gkh_integrator_inn')."'></td>
-				<td style='color:#666666;'><i>Инн организации по которой требуется запрашивать информацию с сайта reformagkh.ru.</i></td>
-			</tr>
-			<tr>
-				<td style='text-align:right;'>Логин:</td>
-				<td><input type='text' name='rwj_reforma_gkh_integrator_login' value='".get_option('rwj_reforma_gkh_integrator_login')."'></td>
-				<td style='color:#666666;'><i>Логин для получения данных с сайта reformagkh.ru</i></td>
-			</tr>
-			<tr>
-				<td style='text-align:right;'>Пароль:</td>
-				<td><input type='password' name='rwj_reforma_gkh_integrator_password' value='".get_option('rwj_reforma_gkh_integrator_password')."'></td>
-				<td style='color:#666666;'><i>Пароль для получения данных с сайта reformagkh.ru</i></td>
-			</tr>
-			<tr>
-				<td style='text-align:right;'>Интервал:</td>
-				<td>
-					<select name='rwj_reforma_gkh_integrator_interval' style='width:170px; height:25px'>
-						<option value='manually'".SelectedByInterval('manually').">В ручную</option>
-						<option value='five_minutes'".SelectedByInterval('five_minutes').">Каждые 5 минут</option>
-						<option value='hourly'".SelectedByInterval('hourly').">Ежечасно</option>
-						<option value='twicedaily'".SelectedByInterval('twicedaily').">Дважды в день</option>
-						<option value='daily'".SelectedByInterval('daily').">Ежедневно</option>
-						<option value='weekly'".SelectedByInterval('weekly').">Еженедельно</option>
-					</select>
-				</td>					
-				<td style='color:#666666;'><i>Как часто производить получение данных с сервера reformagkh.ru</i></td>
-			</tr>			
-			<tr>
-				<td>&nbsp;</td>
-				<td style='text-align:center'>
-					<input type='submit' name='rwj_reforma_gkh_integrator_base_setup_btn' value='Сохранить' style='width:140px; height:25px'/>
-				</td>
-				<td>&nbsp;</td>
-			</tr>
-		</table>
-	</form>";
+	}?>		
+		<div class="form-group">
+			<td style='text-align:right;'>Инн организации:</td>
+			<td><input type='text' name='rwj_reforma_gkh_integrator_inn' value='<? echo get_option('rwj_reforma_gkh_integrator_inn'); ?>'></td>
+			<td style='color:#666666;'><i>Инн организации по которой требуется запрашивать информацию с сайта reformagkh.ru.</i></td>
+		</div>
+		<div class="form-group">
+			<td style='text-align:right;'>Логин:</td>
+			<td><input type='text' name='rwj_reforma_gkh_integrator_login' value='<? echo get_option('rwj_reforma_gkh_integrator_login'); ?>'></td>
+			<td style='color:#666666;'><i>Логин для получения данных с сайта reformagkh.ru</i></td>
+		</div>
+		<div class="form-group">
+			<td style='text-align:right;'>Пароль:</td>
+			<td><input type='password' name='rwj_reforma_gkh_integrator_password' value='<? echo get_option('rwj_reforma_gkh_integrator_password'); ?>'></td>
+			<td style='color:#666666;'><i>Пароль для получения данных с сайта reformagkh.ru</i></td>
+		</div>
+		<div class="form-group">
+			<td style='text-align:right;'>Интервал:</td>
+			<td>
+				<select name='rwj_reforma_gkh_integrator_interval' style='width:170px; height:25px'>
+					<option value='manually'".SelectedByInterval('manually').">В ручную</option>
+					<option value='five_minutes'".SelectedByInterval('five_minutes').">Каждые 5 минут</option>
+					<option value='hourly'".SelectedByInterval('hourly').">Ежечасно</option>
+					<option value='twicedaily'".SelectedByInterval('twicedaily').">Дважды в день</option>
+					<option value='daily'".SelectedByInterval('daily').">Ежедневно</option>
+					<option value='weekly'".SelectedByInterval('weekly').">Еженедельно</option>
+				</select>
+			</td>					
+			<td style='color:#666666;'><i>Как часто производить получение данных с сервера reformagkh.ru</i></td>
+		</div>
+		<div class="form-group">
+			<td>&nbsp;</td>
+			<td style='text-align:center'>
+				<input type='submit' name='rwj_reforma_gkh_integrator_base_setup_btn' value='Сохранить' style='width:140px; height:25px'/>
+			</td>
+			<td>&nbsp;</td>
+		</div>
+	</div><?
 }
 
 
@@ -326,17 +278,38 @@ function rwj_reforma_gkh_integrator_run()
 
 function rwj_reforma_gkh_integrator_scripts()
 {
-	// регистрируем стили
-	add_action( 'wp_enqueue_scripts', 'register_plugin_styles' );
-	// регистрируем скрипты
-	add_action( 'wp_enqueue_scripts', 'register_plugin_scripts' );
+    wp_register_script('rwj_reforma_gkh_integrator_jquery',		'https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js');
+    wp_register_script('rwj_reforma_gkh_integrator_html5shiv',	'https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js');
+    wp_register_script('rwj_reforma_gkh_integrator_respond',	'https://oss.maxcdn.com/respond/1.4.2/respond.min.js');
+    wp_register_script('rwj_reforma_gkh_integrator_bootstrap',	plugins_url( '/assets/js/bootstrap.min.js', __FILE__ ));
+    wp_register_script('rwj_reforma_gkh_integrator_bootstrap_hack', plugins_url('assets/js/bootstrap-hack.js', __FILE__), false, '1.0.0', false);
+	wp_register_script('rwj_reforma_gkh_integrator_ymaps_api',	'https://api-maps.yandex.ru/2.0-stable/?load=package.standard&lang=ru-RU');	
+
+	$script_params = array(
+    	'full_address' => get_option('rwj_reforma_gkh_integrator_full_address')
+	);
+	wp_register_script('rwj_reforma_gkh_integrator_ymaps',	plugins_url( '/assets/js/rwj-integrator-ymap.js', __FILE__ ));
+	wp_localize_script('rwj_reforma_gkh_integrator_ymaps', 'rwj_reforma_gkh_integrator_options', $script_params);
+
+    
+	wp_enqueue_script('rwj_reforma_gkh_integrator_jquery');
+	wp_enqueue_script('rwj_reforma_gkh_integrator_html5shiv');
+	wp_enqueue_script('rwj_reforma_gkh_integrator_respond');
+	wp_enqueue_script('rwj_reforma_gkh_integrator_bootstrap');
+	wp_enqueue_script('rwj_reforma_gkh_integrator_bootstrap_hack');
+	wp_enqueue_script('rwj_reforma_gkh_integrator_ymaps_api');
+	wp_enqueue_script('rwj_reforma_gkh_integrator_ymaps');
 }
 
 function rwj_reforma_gkh_integrator_admin_scripts()
 {
-	wp_enqueue_script('admin_js_bootstrap_hack', plugins_url('assets/js/bootstrap-hack.js', __FILE__), false, '1.0.0', false);
+	wp_register_script('rwj_reforma_gkh_integrator_admin_jquery',		'https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js');
+	wp_register_script('rwj_reforma_gkh_integrator_admin_bootstrap',	plugins_url( '/assets/js/bootstrap.min.js', __FILE__ ));
+	wp_register_script('rwj_reforma_gkh_integrator_admin_bootstrap_hack', plugins_url('assets/js/bootstrap-hack.js', __FILE__), false, '1.0.0', false);
 
-	rwj_reforma_gkh_integrator_popup();
+	wp_enqueue_script('rwj_reforma_gkh_integrator_admin_jquery');
+	wp_enqueue_script('rwj_reforma_gkh_integrator_admin_bootstrap');
+	wp_enqueue_script('rwj_reforma_gkh_integrator_admin_bootstrap_hack');	
 }
 
 function view($tmpl, $vals){

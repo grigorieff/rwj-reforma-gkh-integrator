@@ -3,6 +3,7 @@ if (!document.getElementById(bootstrapCss))
 {
     var head = document.getElementsByTagName('head')[0];
     var bootstrapWrapper = document.createElement('link');
+    var pluginUrl = '<?php echo plugins_url(); ?>' ;
     bootstrapWrapper.id = bootstrapCss;
     bootstrapWrapper.rel = 'stylesheet/less';
     bootstrapWrapper.type = 'text/css';
